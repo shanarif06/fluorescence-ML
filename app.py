@@ -2,7 +2,8 @@ import streamlit as st
 import joblib
 import numpy as np
 import matplotlib.pyplot as plt
-plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams['font.family'] = 'serif'
+plt.rcParams['font.serif'] = ['Times New Roman', 'DejaVu Serif']
 plt.rcParams['font.weight'] = 'bold'
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import io
