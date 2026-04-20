@@ -2,10 +2,14 @@ import streamlit as st
 import joblib
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import r2_score
+plt.rcParams['font.family'] = 'Times New Roman'
+plt.rcParams['font.weight'] = 'bold'
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+import io
 
-# Load model
-model = joblib.load("fluorescence_model.pkl")
+# Load BOTH models
+lr_model = joblib.load("fluorescence_model.pkl")
+rf_model = joblib.load("rf_model.pkl")
 
 # Original dataset
 intensity_data = np.array([
@@ -23,21 +27,17 @@ concentration_data = np.array([
 # Page config
 st.set_page_config(page_title="Fluorescence Analyzer", layout="wide")
 
-# ---------- HEADER ----------
+# Header
 st.markdown("""
 <div style='text-align:center; padding:20px; background-color:#f5f7ff; border-radius:12px;'>
     <h1 style='color:#4F46E5;'>📷 Fluorescence Analyzer</h1>
-<p style='font-size:18px; color:gray;'>Machine Learning-based concentration prediction tool</p>
+    <p style='font-size:18px; color:gray;'>Machine Learning-based concentration prediction tool</p>
 </div>
 """, unsafe_allow_html=True)
 
 st.write("")
 
-# Model parameters
-slope = model.coef_[0]
-intercept = model.intercept_
-
-# Layout columns
+# Layout
 col1, col2 = st.columns([1,1])
 
 # ---------- LEFT PANEL ----------
@@ -50,7 +50,10 @@ with col1:
 
     user_input = st.text_input("Enter intensity values (comma separated, e.g., 4000,5000,5500)")
 
-    st.write("")
+    model_choice = st.selectbox(
+        "Select Model",
+        ["Linear Regression", "Random Forest"]
+    )
 
     predict_btn = st.button("🚀 Predict Concentration")
 
@@ -65,68 +68,150 @@ with col2:
     if predict_btn:
         try:
             values = [float(i) for i in user_input.split(",")]
-            predictions = model.predict(np.array(values).reshape(-1,1))
+
+            if model_choice == "Linear Regression":
+                predictions = lr_model.predict(np.array(values).reshape(-1,1))
+            else:
+                predictions = rf_model.predict(np.array(values).reshape(-1,1))
 
             st.success("Predictions:")
             for i, p in zip(values, predictions):
-                st.write(f"Intensity {i} → {p:.2f} µM")
-
-            # Equation
-            st.info(f"Calibration Equation: C = {slope:.4f} × I + {intercept:.2f}")
-
-            # R2
-            y_pred_full = model.predict(intensity_data.reshape(-1,1))
-            r2 = r2_score(concentration_data, y_pred_full)
-            st.info(f"R²: {r2:.4f}")
+                st.write(f"Intensity {i} → {p:.2f} ppm")
 
         except:
             st.error("Please enter valid numbers separated by commas")
 
-# ---------- FULL WIDTH GRAPH ----------
+# ---------- GRAPH MODE SELECTOR ----------
+graph_mode = st.selectbox(
+    "Select Visualization Mode",
+    ["Linear Regression", "Random Forest", "Compare Both"]
+)
+
+# ---------- MODEL COMPARISON ----------
 st.write("---")
+st.markdown("### 📊 Model Comparison")
 
-import io
+# Predictions
+y_lr = lr_model.predict(intensity_data.reshape(-1,1))
+y_rf = rf_model.predict(intensity_data.reshape(-1,1))
 
-import io
+# Metrics
+r2_lr = r2_score(concentration_data, y_lr)
+r2_rf = r2_score(concentration_data, y_rf)
 
-import io
+rmse_lr = np.sqrt(mean_squared_error(concentration_data, y_lr))
+rmse_rf = np.sqrt(mean_squared_error(concentration_data, y_rf))
 
-st.markdown("### 📈 Calibration Curve")
+mae_lr = mean_absolute_error(concentration_data, y_lr)
+mae_rf = mean_absolute_error(concentration_data, y_rf)
+
+# Conditional metrics display
+if graph_mode == "Linear Regression":
+    st.write(f"🔵 Linear Regression → R²: {r2_lr:.4f}, RMSE: {rmse_lr:.2f}, MAE: {mae_lr:.2f}")
+
+elif graph_mode == "Random Forest":
+    st.write(f"🟠 Random Forest → R²: {r2_rf:.4f}, RMSE: {rmse_rf:.2f}, MAE: {mae_rf:.2f}")
+
+else:
+    st.write(f"🔵 Linear Regression → R²: {r2_lr:.4f}, RMSE: {rmse_lr:.2f}, MAE: {mae_lr:.2f}")
+    st.write(f"🟠 Random Forest → R²: {r2_rf:.4f}, RMSE: {rmse_rf:.2f}, MAE: {mae_rf:.2f}")
+
+# ---------- GRAPH ----------
+st.write("---")
+st.markdown("### 📈 Model Visualization")
 
 fig, ax = plt.subplots()
-
-# Plot data
-ax.scatter(intensity_data, concentration_data)
-
 sorted_idx = np.argsort(intensity_data)
-ax.plot(intensity_data[sorted_idx],
-        model.predict(intensity_data.reshape(-1,1))[sorted_idx])
 
-# Axis labels (UPDATED)
+# Experimental data
+ax.scatter(intensity_data, concentration_data, s=50, label="Experimental Data")
+
+if graph_mode == "Linear Regression":
+    ax.plot(intensity_data[sorted_idx], y_lr[sorted_idx], linewidth=2, label="Linear Regression")
+
+elif graph_mode == "Random Forest":
+    ax.scatter(intensity_data, y_rf, marker='x', s=80, label="Random Forest")
+
+else:
+    ax.plot(intensity_data[sorted_idx], y_lr[sorted_idx], linewidth=2, label="Linear Regression")
+    ax.scatter(intensity_data, y_rf, marker='x', s=80, label="Random Forest")
+
+# Labels
 ax.set_xlabel("Fluorescence Intensity", fontsize=18, fontweight='bold', family='Times New Roman')
 ax.set_ylabel("Concentration (ppm)", fontsize=18, fontweight='bold', family='Times New Roman')
+ax.set_title("Model Visualization", fontsize=16, fontweight='bold', family='Times New Roman')
 
-# Title (optional)
-ax.set_title("Calibration Curve", fontsize=16, fontweight='bold', family='Times New Roman')
+ax.grid(alpha=0.3)
+ax.legend(frameon=False)
 
-# Tick styling (UPDATED)
+st.pyplot(fig)
+
+# Download comparison graph
+buf = io.BytesIO()
+fig.savefig(buf, format="png", dpi=300, bbox_inches='tight')
+buf.seek(0)
+
+st.download_button(
+    label="📥 Download Visualization Graph",
+    data=buf,
+    file_name="model_visualization.png",
+    mime="image/png"
+)
+
+# ---------- STEP 1: NEW SECTION ----------
+st.write("---")
+st.markdown("### 📊 Model Evaluation (Actual vs Predicted)")
+
+# ---------- STEP 2: EVALUATION GRAPH ----------
+fig2, ax2 = plt.subplots()
+
+min_val = min(concentration_data)
+max_val = max(concentration_data)
+
+# Perfect line
+ax2.plot([min_val, max_val],
+         [min_val, max_val],
+         'k--',
+         linewidth=2,
+         label="Perfect Prediction")
+
+if graph_mode == "Linear Regression":
+    ax2.scatter(concentration_data, y_lr, s=60, label="Linear Regression")
+
+elif graph_mode == "Random Forest":
+    ax2.scatter(concentration_data, y_rf, marker='x', s=80, label="Random Forest")
+
+else:
+    ax2.scatter(concentration_data, y_lr, s=60, label="Linear Regression")
+    ax2.scatter(concentration_data, y_rf, marker='x', s=80, label="Random Forest")
+
+# Labels
+ax2.set_xlabel("Actual Concentration", fontsize=18, fontweight='bold', family='Times New Roman')
+ax2.set_ylabel("Predicted Concentration", fontsize=18, fontweight='bold', family='Times New Roman')
+ax2.set_title("Actual vs Predicted", fontsize=16, fontweight='bold', family='Times New Roman')
 for label in (ax.get_xticklabels() + ax.get_yticklabels()):
+    label.set_fontname('Times New Roman')
+    label.set_fontsize(16)
+    label.set_fontweight('bold')
+# Styling
+for label in (ax2.get_xticklabels() + ax2.get_yticklabels()):
     label.set_fontsize(16)
     label.set_fontname('Times New Roman')
     label.set_fontweight('bold')
 
-# No legend (as you requested)
+ax2.grid(alpha=0.3)
+ax2.legend(frameon=False)
 
-st.pyplot(fig)
+st.pyplot(fig2)
 
-# Save graph (high quality)
-buf = io.BytesIO()
-fig.savefig(buf, format="png", dpi=300)
-buf.seek(0)
+# ---------- STEP 3: DOWNLOAD ----------
+buf2 = io.BytesIO()
+fig2.savefig(buf2, format="png", dpi=300, bbox_inches='tight')
+buf2.seek(0)
 
 st.download_button(
-    label="📥 Download Calibration Graph",
-    data=buf,
-    file_name="calibration_curve.png",
+    label="📥 Download Evaluation Graph",
+    data=buf2,
+    file_name="actual_vs_predicted.png",
     mime="image/png"
 )
