@@ -187,17 +187,17 @@ else:
     ax2.scatter(concentration_data, y_rf, marker='x', s=80, label="Random Forest")
 
 # Labels
-ax2.set_xlabel("Actual Concentration", fontsize=18, fontweight='bold', family='Times New Roman')
-ax2.set_ylabel("Predicted Concentration", fontsize=18, fontweight='bold', family='Times New Roman')
-ax2.set_title("Actual vs Predicted", fontsize=16, fontweight='bold', family='Times New Roman')
+ax2.set_xlabel("Actual Concentration", fontsize=14, fontweight='bold', family='serif')
+ax2.set_ylabel("Predicted Concentration", fontsize=14, fontweight='bold', family='serif')
+ax2.set_title("Actual vs Predicted", fontsize=14, fontweight='bold', family='serif') 
 for label in (ax.get_xticklabels() + ax.get_yticklabels()):
-    label.set_fontname('Times New Roman')
-    label.set_fontsize(16)
+    label.set_fontname('DejaVu Serif')
+    label.set_fontsize(14)
     label.set_fontweight('bold')
 # Styling
 for label in (ax2.get_xticklabels() + ax2.get_yticklabels()):
-    label.set_fontsize(16)
-    label.set_fontname('Times New Roman')
+    label.set_fontsize(14)
+    label.set_fontname('DejaVu Serif')
     label.set_fontweight('bold')
 
 ax2.grid(alpha=0.3)
