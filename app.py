@@ -130,11 +130,11 @@ if graph_mode == "Linear Regression":
     ax.plot(intensity_data[sorted_idx], y_lr[sorted_idx], linewidth=2, label="Linear Regression")
 
 elif graph_mode == "Random Forest":
-    ax.scatter(intensity_data, y_rf, marker='x', s=80, label="Random Forest")
+    ax.scatter(intensity_data, y_rf, marker='x', s=50, label="Random Forest")
 
 else:
     ax.plot(intensity_data[sorted_idx], y_lr[sorted_idx], linewidth=2, label="Linear Regression")
-    ax.scatter(intensity_data, y_rf, marker='x', s=80, label="Random Forest")
+    ax.scatter(intensity_data, y_rf, marker='x', s=50, label="Random Forest")
     # ---------- 🔴 USER INPUT HIGHLIGHT ----------
 if predict_btn and user_input:
     try:
@@ -194,14 +194,14 @@ ax2.plot([min_val, max_val],
          label="Perfect Prediction")
 
 if graph_mode == "Linear Regression":
-    ax2.scatter(concentration_data, y_lr, s=60, label="Linear Regression")
+    ax2.scatter(concentration_data, y_lr, s=50, label="Linear Regression")
 
 elif graph_mode == "Random Forest":
-    ax2.scatter(concentration_data, y_rf, marker='x', s=80, label="Random Forest")
+    ax2.scatter(concentration_data, y_rf, marker='x', s=50, label="Random Forest")
 
 else:
-    ax2.scatter(concentration_data, y_lr, s=60, label="Linear Regression")
-    ax2.scatter(concentration_data, y_rf, marker='x', s=80, label="Random Forest")
+    ax2.scatter(concentration_data, y_lr, s=50, label="Linear Regression")
+    ax2.scatter(concentration_data, y_rf, marker='x', s=50, label="Random Forest")
 
 # Labels
 ax2.set_xlabel("Actual Concentration", fontsize=12, fontweight='bold', family='Times New Roman')
