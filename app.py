@@ -148,7 +148,7 @@ if predict_btn and user_input:
         ax.scatter(user_x,
                    user_y,
                    color='red',
-                   s=100,
+                   s=50,
                    label="User Prediction")
 
     except:
