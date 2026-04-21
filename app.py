@@ -160,8 +160,7 @@ ax.set_ylabel("Concentration (ppm)", fontsize=12, fontweight='bold', family='Tim
 ax.set_title("Model Visualization", fontsize=12, fontweight='bold', family='Times New Roman')
 
 ax.grid(alpha=0.3)
-ax.legend(frameon=False)
-
+ax.legend(frameon=False, handlelength=1.5, handletextpad=0.8) 
 st.pyplot(fig)
 
 # Download comparison graph
