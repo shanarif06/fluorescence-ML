@@ -126,83 +126,75 @@ sorted_idx = np.argsort(intensity_data)
 # Experimental data
 ax.scatter(intensity_data, concentration_data, s=50, label="Experimental Data")
 
+# ---------- MODEL ----------
 if graph_mode == "Linear Regression":
-    ax.plot(intensity_data[sorted_idx], y_lr[sorted_idx], linewidth=2, label="Linear Regression")
+    ax.plot(intensity_data[sorted_idx],
+            y_lr[sorted_idx],
+            linewidth=2,
+            label="Linear Regression")
 
 elif graph_mode == "Random Forest":
-    ax.scatter(intensity_data, y_rf, marker='x', s=80, label="Random Forest")
+    ax.scatter(intensity_data,
+               y_rf,
+               marker='x',
+               s=80,
+               label="Random Forest")
 
 else:
-    ax.plot(intensity_data[sorted_idx], y_lr[sorted_idx], linewidth=2, label="Linear Regression")
-    ax.scatter(intensity_data, y_rf, marker='x', s=80, label="Random Forest")
+    ax.plot(intensity_data[sorted_idx],
+            y_lr[sorted_idx],
+            linewidth=2,
+            label="Linear Regression")
 
-# Labels
-ax.set_xlabel("Fluorescence Intensity", fontsize=18, fontweight='bold', family='Times New Roman')
-ax.set_ylabel("Concentration (ppm)", fontsize=18, fontweight='bold', family='Times New Roman')
-ax.set_title("Model Visualization", fontsize=16, fontweight='bold', family='Times New Roman')
+    ax.scatter(intensity_data,
+               y_rf,
+               marker='x',
+               s=80,
+               label="Random Forest")
 
+# ---------- 🔴 USER INPUT HIGHLIGHT ----------
+if predict_btn:
+    try:
+        user_x = np.array(values)
+
+        if model_choice == "Linear Regression":
+            user_y = lr_model.predict(user_x.reshape(-1,1))
+        else:
+            user_y = rf_model.predict(user_x.reshape(-1,1))
+
+        ax.scatter(user_x,
+                   user_y,
+                   color='red',
+                   s=100,
+                   edgecolors='black',
+                   label="User Prediction")
+
+    except:
+        pass
+
+# ---------- LABELS ----------
+ax.set_xlabel("Fluorescence Intensity", fontsize=18, fontweight='bold', family='serif')
+ax.set_ylabel("Concentration (ppm)", fontsize=18, fontweight='bold', family='serif')
+ax.set_title("Model Visualization with User Input", fontsize=16, fontweight='bold', family='serif')
+
+# ---------- FONT FIX ----------
+for label in ax.get_xticklabels():
+    label.set_fontname('DejaVu Serif')
+    label.set_fontsize(16)
+    label.set_fontweight('bold')
+
+for label in ax.get_yticklabels():
+    label.set_fontname('DejaVu Serif')
+    label.set_fontsize(16)
+    label.set_fontweight('bold')
+
+# ---------- LEGEND ----------
+ax.legend(prop={'family': 'serif', 'size': 14, 'weight': 'bold'}, frameon=False)
+
+# ---------- GRID ----------
 ax.grid(alpha=0.3)
-ax.legend(frameon=False)
 
-st.pyplot(fig)
-
-# Download comparison graph
-buf = io.BytesIO()
-fig.savefig(buf, format="png", dpi=300, bbox_inches='tight')
-buf.seek(0)
-
-st.download_button(
-    label="📥 Download Visualization Graph",
-    data=buf,
-    file_name="model_visualization.png",
-    mime="image/png"
-)
-
-# ---------- STEP 1: NEW SECTION ----------
-st.write("---")
-st.markdown("### 📊 Model Evaluation (Actual vs Predicted)")
-
-# ---------- STEP 2: EVALUATION GRAPH ----------
-fig2, ax2 = plt.subplots()
-
-min_val = min(concentration_data)
-max_val = max(concentration_data)
-
-# Perfect line
-ax2.plot([min_val, max_val],
-         [min_val, max_val],
-         'k--',
-         linewidth=2,
-         label="Perfect Prediction")
-
-if graph_mode == "Linear Regression":
-    ax2.scatter(concentration_data, y_lr, s=60, label="Linear Regression")
-
-elif graph_mode == "Random Forest":
-    ax2.scatter(concentration_data, y_rf, marker='x', s=80, label="Random Forest")
-
-else:
-    ax2.scatter(concentration_data, y_lr, s=60, label="Linear Regression")
-    ax2.scatter(concentration_data, y_rf, marker='x', s=80, label="Random Forest")
-
-# Labels
-ax2.set_xlabel("Actual Concentration", fontsize=18, fontweight='bold', family='Times New Roman')
-ax2.set_ylabel("Predicted Concentration", fontsize=18, fontweight='bold', family='Times New Roman')
-ax2.set_title("Actual vs Predicted", fontsize=16, fontweight='bold', family='Times New Roman')
-for label in (ax.get_xticklabels() + ax.get_yticklabels()):
-    label.set_fontname('Times New Roman')
-    label.set_fontsize(16)
-    label.set_fontweight('bold')
-# Styling
-for label in (ax2.get_xticklabels() + ax2.get_yticklabels()):
-    label.set_fontsize(16)
-    label.set_fontname('Times New Roman')
-    label.set_fontweight('bold')
-
-ax2.grid(alpha=0.3)
-ax2.legend(frameon=False)
-
-st.pyplot(fig2)
+st.pyplot(fig) 
 
 # ---------- STEP 3: DOWNLOAD ----------
 buf2 = io.BytesIO()
