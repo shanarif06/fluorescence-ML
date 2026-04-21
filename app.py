@@ -135,6 +135,24 @@ elif graph_mode == "Random Forest":
 else:
     ax.plot(intensity_data[sorted_idx], y_lr[sorted_idx], linewidth=2, label="Linear Regression")
     ax.scatter(intensity_data, y_rf, marker='x', s=80, label="Random Forest")
+    # ---------- 🔴 USER INPUT HIGHLIGHT ----------
+if predict_btn and user_input:
+    try:
+        user_x = np.array([float(i) for i in user_input.split(",")])
+
+        if model_choice == "Linear Regression":
+            user_y = lr_model.predict(user_x.reshape(-1,1))
+        else:
+            user_y = rf_model.predict(user_x.reshape(-1,1))
+
+        ax.scatter(user_x,
+                   user_y,
+                   color='red',
+                   s=100,
+                   label="User Prediction")
+
+    except:
+        pass 
 
 # Labels
 ax.set_xlabel("Fluorescence Intensity", fontsize=18, fontweight='bold', family='Times New Roman')
