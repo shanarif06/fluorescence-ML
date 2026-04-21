@@ -197,7 +197,8 @@ ax.grid(alpha=0.3)
 st.pyplot(fig) 
 
 # ---------- STEP 3: DOWNLOAD ----------
-buf2 = io.BytesIO()
+buf2 = io.BytesIO()   
+
 fig2.savefig(buf2, format="png", dpi=300, bbox_inches='tight')
 buf2.seek(0)
 
